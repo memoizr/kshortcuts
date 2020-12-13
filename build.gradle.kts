@@ -6,7 +6,7 @@ plugins {
     maven
 }
 group = "me.user"
-version = "1.0-SNAPSHOT"
+version = "1"
 
 repositories {
     mavenCentral()
@@ -23,4 +23,8 @@ tasks.withType<KotlinCompile>() {
 }
 application {
     mainClassName = "MainKt"
+}
+
+tasks.jar {
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
 }
