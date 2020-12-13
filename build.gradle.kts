@@ -13,10 +13,10 @@ repositories {
 }
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1")
-    implementation("com.1stleg:jnativehook:2.1.0")
-    implementation("com.github.tulskiy:jkeymaster:1.3")
+    api("com.1stleg:jnativehook:2.1.0")
+    api("com.github.tulskiy:jkeymaster:1.3")
+    api(kotlin("script-runtime"))
     testImplementation(kotlin("test-junit"))
-    implementation(kotlin("script-runtime"))
 }
 tasks.withType<KotlinCompile>() {
     kotlinOptions.jvmTarget = "1.8"

@@ -1,5 +1,5 @@
 @file:Repository("https://jitpack.io")
-@file:DependsOn("com.github.memoizr:kshortcuts:-SNAPSHOT")
+@file:DependsOn("com.github.memoizr:kshortcuts:5f702e6063")
 
 import aliases.Action
 import extensions.bind
@@ -9,7 +9,8 @@ import handlers.Direction
 import handlers.Direction.*
 import models.*
 
-shortcuts {
+
+val config: ShortCutHandler.() -> Unit = {
     passthrough {
         bind keys meta + A toAction moveCursorLeft
         bind keys meta + S toAction moveCursorDown
@@ -36,6 +37,7 @@ shortcuts {
     press keys meta + alt_r + O toAction {
     }
 }
+shortcuts(config)
 
 val scrollLeft: Action = { buttonHandler.scrollLeftPressed() }
 val scrollRight: Action = { buttonHandler.scrollRightPressed() }
