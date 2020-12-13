@@ -1,13 +1,11 @@
-package shortcuts
+package handlers
 
-import com.sun.jna.platform.KeyboardUtils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import shortcuts.Direction.*
+import handlers.Direction.*
 import java.awt.MouseInfo
 import java.awt.Robot
-import java.awt.event.KeyEvent.VK_META
 import java.lang.Math.*
 
 class CursorHandler {
@@ -23,7 +21,7 @@ class CursorHandler {
     private var slower = false
 
     private val decelerationFactor = 0.85
-    private val slowDownFactor = 3
+    private val slowDownFactor = 4
     private val updateIntervalMs = 20L
 
     private inline fun accelerate(i: Double) = ceil(max(1.0, abs(i) * 1.40) / (abs(i) / 200 + 1))

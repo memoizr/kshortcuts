@@ -1,3 +1,6 @@
+import extensions.toPress
+import extensions.toRelease
+import models.KeyEvent
 import org.jnativehook.GlobalScreen
 import org.jnativehook.NativeHookException
 import org.jnativehook.NativeInputEvent.*
@@ -7,8 +10,8 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 class KeyLogger : NativeKeyListener {
-    private val pressed: MutableMap<Int, (Boolean) -> Unit> = mutableMapOf()
-    private val released: MutableMap<Int, (Boolean) -> Unit> = mutableMapOf()
+    private val pressed: MutableMap<Int, Pair<KeyEvent, KeyEvent.() -> Unit>> = mutableMapOf()
+    private val released: MutableMap<Int, Pair<KeyEvent, KeyEvent.() -> Unit>> = mutableMapOf()
     private val spacer = 10000
 
     fun start(): KeyLogger {
@@ -28,17 +31,17 @@ class KeyLogger : NativeKeyListener {
         return this
     }
 
-    fun register(keyEvent: KeyEvent, action: (Boolean) -> Unit) {
+    fun register(keyEvent: KeyEvent, action: KeyEvent.() -> Unit) {
         val keyCode = keyEvent.key.code
         val modifiers = keyEvent.modifer
 
         val key = keyCode * spacer + modifiers
 
         if (keyEvent.isPress) {
-            pressed.put(key, action)
+            pressed.put(key, keyEvent.toPress() to action)
         }
         if (keyEvent.isRelease) {
-            released.put(key, action)
+            released.put(key, keyEvent.toRelease() to action)
         }
     }
 
@@ -47,10 +50,10 @@ class KeyLogger : NativeKeyListener {
         val modifiers = e.modifiers
 
         val i = keyCode * spacer + modifiers
-        pressed[i]?.invoke(true)
-        pressed[i - BUTTON1_MASK]?.invoke(true)
-        pressed[i - BUTTON2_MASK]?.invoke(true)
-        pressed[i - BUTTON3_MASK]?.invoke(true)
+        pressed[i]?.invoke()
+        pressed[i - BUTTON1_MASK]?.invoke()
+        pressed[i - BUTTON2_MASK]?.invoke()
+        pressed[i - BUTTON3_MASK]?.invoke()
     }
 
     override fun nativeKeyReleased(e: NativeKeyEvent) {
@@ -58,12 +61,14 @@ class KeyLogger : NativeKeyListener {
         val modifiers = e.modifiers
         val i = keyCode * spacer + modifiers
 
-        released[i]?.invoke(false)
-        released[keyCode * spacer + (modifiers - BUTTON1_MASK)]?.invoke(false)
-        released[keyCode * spacer + (modifiers - BUTTON2_MASK)]?.invoke(false)
-        released[keyCode * spacer + (modifiers - BUTTON3_MASK)]?.invoke(false)
+        released[i]?.invoke()
+        released[keyCode * spacer + (modifiers - BUTTON1_MASK)]?.invoke()
+        released[keyCode * spacer + (modifiers - BUTTON2_MASK)]?.invoke()
+        released[keyCode * spacer + (modifiers - BUTTON3_MASK)]?.invoke()
     }
 
     override fun nativeKeyTyped(e: NativeKeyEvent) {
     }
+
+    fun Pair<KeyEvent, KeyEvent.() -> Unit>.invoke() = second.invoke(first)
 }

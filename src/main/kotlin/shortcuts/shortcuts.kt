@@ -1,127 +1,96 @@
 package shortcuts
 
-import Binding
-import Shortcuts
-import ShortCutHandler.*
-import alt
-import bind
+import HotKey
+import ShortCutHandler
+import aliases.Action
+import aliases.Shortcuts
 import buttonHandler
+import com.sun.jna.NativeLong
 import com.sun.jna.platform.unix.X11
 import cursorHandler
-import keyHandler
-import keys
-import meta
-import press
+import extensions.bind
+import extensions.keys
+import extensions.plus
+import handlers.Direction
+import handlers.Direction.*
+import models.*
 import passthrough
+import onPress
+import onRelease
 import print
-import released
-import shortcuts.Direction.*
-import kotlin.system.measureTimeMillis
+import java.awt.event.KeyEvent.KEY_PRESSED
+
 
 val shortCuts: Shortcuts = {
     passthrough {
-        bind keys meta + A to moveCursorLeft
-        bind keys meta + S to moveCursorDown
-        bind keys meta + D to moveCursorUp
-        bind keys meta + F to moveCursorRight
+        bind keys meta + A toAction moveCursorLeft
+        bind keys meta + S toAction moveCursorDown
+        bind keys meta + D toAction moveCursorUp
+        bind keys meta + F toAction moveCursorRight
 
-        bind keys meta + N to slowCursor
+        bind keys meta + N toAction slowCursor
 
-        bind keys meta + Space to leftMouseClick
-        bind keys meta + P to middleMouseClick
-        bind keys meta + Escape to rightMouseClick
+        bind keys meta + Space toAction leftMouseClick
+        bind keys meta + P toAction middleMouseClick
+        bind keys meta + Escape toAction rightMouseClick
 
-        press keys meta + J to scrollDown
-        press keys meta + K to scrollUp
-        press keys meta + H to scrollLeft
-        press keys meta + L to scrollRight
+        press keys meta + J toAction scrollDown
+        press keys meta + K toAction scrollUp
+        press keys meta + H toAction scrollLeft
+        press keys meta + L toAction scrollRight
     }
 
-    bind keys meta + Y to moveCursorLeft
-    bind keys meta + U to moveCursorDown
-    bind keys meta + I to moveCursorUp
-    bind keys meta + O to moveCursorRight
+    bind keys meta + Y toAction moveCursorLeft
+    bind keys meta + U toAction moveCursorDown
+    bind keys meta + I toAction moveCursorUp
+    bind keys meta + O toAction moveCursorRight
 
-    bind keys meta + alt + O to pressEnterKey
-}
-
-val scrollLeft: Binding = { buttonHandler.scrollLeftPressed() }
-val scrollRight: Binding = { buttonHandler.scrollRightPressed() }
-val scrollDown: Binding = { buttonHandler.scrollDownPressed() }
-val scrollUp: Binding = { buttonHandler.scrollUpPressed() }
-
-val pressEnterKey: Binding = {
-    released {  }
-    println("=========")
-//    keyHandler.pressEnter()
-//    if (it) keyHandler.pressEnter() else keyHandler.releaseEnter()
-    measureTimeMillis {
-        if (it) Runtime.getRuntime().exec("""xvkbd -xsendevent -text \r""")
-    }.print("time to execute")
-}
-
-val middleMouseClick: Binding = {
-    if (it) {
-        buttonHandler.middleButtonPressed()
-    }
-    if (!it) {
-        buttonHandler.middleButtonReleased()
+    press keys meta + alt_r + O toAction {
     }
 }
 
-val leftMouseClick: Binding = {
-    if (it) {
-        buttonHandler.leftButtonPressed()
-    }
-    if (!it) {
-        buttonHandler.leftButtonReleased()
-    }
+private fun ShortCutHandler.unregister(it: HotKey) {
+    logger.register(
+        KeyEvent(
+            it.keyEvent.keyStroke, setOf(release),
+            object : Key {
+                override val name: String = "meta"
+                override val code: Int = meta.code
+
+            }), it.action
+    )
 }
 
-val rightMouseClick: Binding = {
-    if (it) {
-        buttonHandler.rightButtonPressed()
-    }
-    if (!it) {
-        buttonHandler.rightButtonReleased()
-    }
-}
-val moveCursorLeft: Binding = moveCursor(LEFT)
-val moveCursorRight: Binding = moveCursor(RIGHT)
-val moveCursorUp: Binding = moveCursor(UP)
-val moveCursorDown: Binding = moveCursor(DOWN)
+val scrollLeft: Action = { buttonHandler.scrollLeftPressed() }
+val scrollRight: Action = { buttonHandler.scrollRightPressed() }
+val scrollDown: Action = { buttonHandler.scrollDownPressed() }
+val scrollUp: Action = { buttonHandler.scrollUpPressed() }
 
-
-val slowCursor: Binding = { cursorHandler.slowDown(it) }
-
-fun moveCursor(direction: Direction): Binding = {
-    if (it) {
-        cursorHandler.keyPress(direction)
-    }
-    if (!it) {
-        cursorHandler.keyRelease(direction)
-    }
+val pressEnterKey = onPress {
+//    execute("""xvkbd -xsendevent -text \r""")
 }
 
-//val moveCursorLeft: Binding = {
-//    val direction = LEFT
-//    pressed { cursorHandler.keyPress(direction) }
-//    released { cursorHandler.keyRelease(direction) }
-//}
-//
-//val moveCursorRight: Binding = {
-//    val direction = RIGHT
-//    pressed { cursorHandler.keyPress(direction) }
-//    released { cursorHandler.keyRelease(direction) }
-//}
-//val moveCursorDown: Binding = {
-//    val direction = DOWN
-//    pressed { cursorHandler.keyPress(direction) }
-//    released { cursorHandler.keyRelease(direction) }
-//}
-//
-//val moveCursorUp: Binding = {
-//    val direction = UP
-//    pressed { cursorHandler.keyPress(direction) }
-//    released { cursorHandler.keyRelease(direction) }
-//}
+
+val middleMouseClick =
+    onPress { buttonHandler.middleButtonPressed() }
+        .onRelease { buttonHandler.middleButtonReleased() }
+
+val leftMouseClick =
+    onPress { buttonHandler.leftButtonPressed() }
+        .onRelease { buttonHandler.leftButtonReleased() }
+
+val rightMouseClick =
+    onPress { buttonHandler.rightButtonPressed() }
+        .onRelease { buttonHandler.rightButtonReleased() }
+
+val moveCursorLeft = moveCursor(LEFT)
+val moveCursorRight = moveCursor(RIGHT)
+val moveCursorUp = moveCursor(UP)
+val moveCursorDown = moveCursor(DOWN)
+
+
+val slowCursor: Action = { cursorHandler.slowDown(isPress) }
+
+fun moveCursor(direction: Direction) =
+    onPress { cursorHandler.keyPress(direction) }
+        .onRelease { cursorHandler.keyRelease(direction) }

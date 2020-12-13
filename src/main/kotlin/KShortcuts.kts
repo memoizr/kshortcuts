@@ -1,3 +1,3 @@
-runShort {
+shortcuts {
 
 }

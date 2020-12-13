@@ -1,3 +1,5 @@
+package handlers
+
 import java.awt.Rectangle
 import java.awt.Robot
 import java.awt.event.KeyEvent
